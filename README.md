@@ -21,7 +21,7 @@ Small 1D CNN predicting $S[q]$ from a path configuration. Training combines thre
 - MSE on the input-gradient $\nabla S_\theta$ (gradient matching)
 - $\lVert\nabla S_\theta[q_{\text{cl}}]\rVert^2$ penalty at classical instantons (saddle-point pinning)
 
-The $\mathbb{Z}_2$ symmetry $q \to -q$ is enforced via data augmentation.
+If necessary, the $\mathbb{Z}_2$ symmetry $q \to -q$ is enforced via data augmentation.
 
 ## Usage
 
