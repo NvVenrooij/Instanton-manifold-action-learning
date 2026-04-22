@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.DS_Store
+data/
+results/
+*.npy
+*.pth
+*.png
+*.csv
+*.pdf
+.ipynb_checkpoints/
+.vscode/
+.idea/
