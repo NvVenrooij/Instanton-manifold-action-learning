@@ -30,7 +30,6 @@ Usage
 Edit the CONFIGURATION block, then run:
     python instanton_finder.py
 """
-#%%
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -431,26 +430,17 @@ def plot_profiles(results: dict, path: DoubleWellPath,
 
 def plot_hessian_comparison(eigs_exact: np.ndarray, eigs_cnn: np.ndarray,
                             save_path: str | None = None) -> None:
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+    fig, ax = plt.subplots(figsize=(8, 5))
     n = min(20, len(eigs_exact))
     idx = np.arange(n)
 
-    axes[0].plot(idx, eigs_exact[:n], "ko-", lw=2, label="Exact")
-    axes[0].plot(idx, eigs_cnn[:n],   "s--", lw=1.5, label="CNN")
-    axes[0].set_xlabel("Mode index")
-    axes[0].set_ylabel("Eigenvalue")
-    axes[0].set_title("Interior Hessian spectrum")
-    axes[0].grid(True, alpha=0.3)
-    axes[0].legend()
-
-    lo = min(eigs_exact.min(), eigs_cnn.min())
-    hi = max(eigs_exact.max(), eigs_cnn.max())
-    axes[1].scatter(eigs_exact, eigs_cnn, s=12, alpha=0.6)
-    axes[1].plot([lo, hi], [lo, hi], "r--", lw=1.5)
-    axes[1].set_xlabel("Exact eigenvalue")
-    axes[1].set_ylabel("CNN eigenvalue")
-    axes[1].set_title("Eigenvalue parity")
-    axes[1].grid(True, alpha=0.3)
+    ax.plot(idx, eigs_exact[:n], "ko-", lw=2, label="Exact")
+    ax.plot(idx, eigs_cnn[:n],   "s--", lw=1.5, label="CNN")
+    ax.set_xlabel("Mode index")
+    ax.set_ylabel("Eigenvalue")
+    ax.set_title("Interior Hessian spectrum")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
 
     plt.tight_layout()
     if save_path:
@@ -464,6 +454,10 @@ def plot_cost_vs_accuracy(results: dict, path: DoubleWellPath,
     """
     Cumulative cost (in gradient-equivalent units) vs exact gradient norm.
 
+    Both axes are log-scaled because CNN surrogate cost (~N iters) is orders
+    of magnitude smaller than Newton cost (~N_int per iter) -- on a linear
+    scale the CNN line would be invisible.
+
     Cost model per step:
       Newton exact   = N_int  (Hessian solve)
       CNN surrogate  = 1
@@ -473,6 +467,13 @@ def plot_cost_vs_accuracy(results: dict, path: DoubleWellPath,
     cost_per_step_default = {
         "Newton exact" : N_int,
         "CNN surrogate": 1,
+    }
+
+    # Distinct, saturated colours -- blue / orange / green
+    colours = {
+        "CNN surrogate" : "#1f77b4",   # blue
+        "Newton exact"  : "#d62728",   # red
+        "Hybrid"        : "#2ca02c",   # green
     }
 
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -486,13 +487,15 @@ def plot_cost_vs_accuracy(results: dict, path: DoubleWellPath,
             c     = cost_per_step_default.get(label, 1)
             cost  = np.arange(1, len(gnorms) + 1) * c
 
-        ax.semilogy(cost, gnorms, lw=1.5, label=label)
+        ax.loglog(cost, gnorms, lw=2.0,
+                  color=colours.get(label),
+                  label=label)
 
     ax.set_xlabel("Cumulative cost (gradient-equivalent units)")
     ax.set_ylabel(r"$||\nabla S||_{\mathrm{interior}}$")
     ax.set_title("Cost vs accuracy")
-    ax.grid(True, alpha=0.3)
-    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3, which="both")
+    ax.legend(fontsize=10)
 
     plt.tight_layout()
     if save_path:
